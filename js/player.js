@@ -91,7 +91,9 @@
             if (opts.onExit) { e.preventDefault(); opts.onExit(); return; }
             if (results.length && !finished && !confirm('Выйти из тренировки? Результат уже отвеченных заданий сохранён.')) e.preventDefault();
           } }, '✕'),
-          titleEl, scoreEl, timerEl, counter),
+          titleEl, scoreEl, timerEl,
+          opts.lesson && !exam ? h('button', { class: 'btn btn-ghost btn-small', title: 'Теория', onclick: () => T.modal(T.mdEl('div', opts.lesson, 'lesson-body'), { wide: true }) }, '📖') : null,
+          counter),
         bar, stage));
 
     if (!total) {

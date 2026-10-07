@@ -129,30 +129,54 @@ window.T = window.T || {};
   };
 
   // ---------- Мини-markdown ----------
-  // Поддерживает: ```код```, `код`, **жирный**, *курсив*, списки, ![](картинка), [ссылка](url),
-  // формулы $...$ и $$...$$ (рендерятся KaTeX).
+  // Поддерживает: ```java код```, `код`, **жирный**, *курсив*, заголовки #, списки, таблицы |a|b|,
+  // цитаты >, ![](картинка), [ссылка](url), формулы $...$ и $$...$$ (рендерятся KaTeX).
   T.md = function (src) {
     if (src == null) return '';
     src = String(src);
-    const parts = src.split(/^```[^\n]*\n([\s\S]*?)^```\s*$/m);
+    const parts = src.split(/^```([^\n]*)\n([\s\S]*?)^```\s*$/m);
     let html = '';
-    for (let i = 0; i < parts.length; i++) {
-      if (i % 2 === 1) html += '<pre class="code-block"><code>' + T.esc(parts[i].replace(/\n$/, '')) + '</code></pre>';
-      else html += mdBlocks(parts[i]);
+    for (let i = 0; i < parts.length; i += 3) {
+      html += mdBlocks(parts[i]);
+      if (i + 2 < parts.length) {
+        const lang = parts[i + 1].trim().toLowerCase();
+        html += '<pre class="code-block"><code' + (lang ? ' class="language-' + T.esc(lang) + '"' : '') + '>' + T.esc(parts[i + 2].replace(/\n$/, '')) + '</code></pre>';
+      }
     }
     return html;
   };
+
+  const cells = line => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
 
   function mdBlocks(text) {
     text = text.replace(/^\n+|\n+$/g, '');
     if (!text) return '';
     const lines = text.split('\n');
-    let out = '', para = [], list = null;
+    let out = '', para = [], list = null, quote = [], table = [];
     const flushPara = () => { if (para.length) { out += '<p>' + para.map(mdInline).join('<br>') + '</p>'; para = []; } };
     const flushList = () => { if (list) { out += `<${list.tag}>` + list.items.map(x => '<li>' + mdInline(x) + '</li>').join('') + `</${list.tag}>`; list = null; } };
+    const flushQuote = () => { if (quote.length) { out += '<blockquote>' + mdBlocks(quote.join('\n')) + '</blockquote>'; quote = []; } };
+    const flushTable = () => {
+      if (!table.length) return;
+      const sep = table.length > 1 && /^\s*\|?[\s:|-]+\|?\s*$/.test(table[1]);
+      const head = sep ? cells(table[0]) : null;
+      const rows = (sep ? table.slice(2) : table).map(cells);
+      out += '<div class="table-wrap"><table>' +
+        (head ? '<thead><tr>' + head.map(c => '<th>' + mdInline(c) + '</th>').join('') + '</tr></thead>' : '') +
+        '<tbody>' + rows.map(r => '<tr>' + r.map(c => '<td>' + mdInline(c) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>';
+      table = [];
+    };
+    const flushAll = () => { flushPara(); flushList(); flushQuote(); flushTable(); };
     for (const line of lines) {
+      const hd = line.match(/^(#{1,4})\s+(.*)$/);
       const ul = line.match(/^\s*[-•]\s+(.*)$/), ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
-      if (ul || ol) {
+      const qt = line.match(/^>\s?(.*)$/);
+      if (/^\s*\|.*\|\s*$/.test(line)) { if (!table.length) flushAll(); table.push(line); continue; }
+      flushTable();
+      if (qt) { if (!quote.length) { flushPara(); flushList(); } quote.push(qt[1]); continue; }
+      flushQuote();
+      if (hd) { flushAll(); const n = hd[1].length + 1; out += `<h${n}>${mdInline(hd[2])}</h${n}>`; }
+      else if (ul || ol) {
         flushPara();
         const tag = ul ? 'ul' : 'ol';
         if (!list || list.tag !== tag) { flushList(); list = { tag, items: [] }; }
@@ -160,7 +184,7 @@ window.T = window.T || {};
       } else if (!line.trim()) { flushPara(); flushList(); }
       else { flushList(); para.push(line); }
     }
-    flushPara(); flushList();
+    flushAll();
     return out;
   }
 
@@ -194,9 +218,22 @@ window.T = window.T || {};
     else window.addEventListener('load', go, { once: true });
   };
 
+  // Подсветка синтаксиса (highlight.js с CDN, если загрузился)
+  const HL_LANGS = ['java', 'python', 'javascript', 'cpp', 'csharp', 'sql', 'kotlin', 'bash'];
+  T.highlight = function (el) {
+    if (!el) return;
+    const go = () => {
+      if (!window.hljs) return;
+      hljs.configure({ languages: HL_LANGS, ignoreUnescapedHTML: true });
+      el.querySelectorAll('pre.code-block code').forEach(c => { if (!c.dataset.highlighted) hljs.highlightElement(c); });
+    };
+    if (window.hljs) go(); else window.addEventListener('load', go, { once: true });
+  };
+
   T.mdEl = function (tag, text, cls) {
     const el = T.h(tag, { class: 'md' + (cls ? ' ' + cls : ''), html: T.md(text) });
     T.renderMath(el);
+    T.highlight(el);
     return el;
   };
 

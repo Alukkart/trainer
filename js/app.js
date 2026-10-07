@@ -265,6 +265,11 @@
           p.description ? T.mdEl('div', p.description, 'muted') : null),
         h('div', { class: 'stats' },
           stat(st.total, 'заданий'), stat(st.done, 'решено верно', 'good'), stat(st.wrong, 'с ошибкой', 'bad'), stat(st.seen ? st.due : '—', 'к повторению'))),
+      p.lesson ? h('details', { class: 'card lesson', open: !st.seen },
+        h('summary', null, h('span', { class: 'lesson-title' }, '📖 Теория'), h('span', { class: 'muted small' }, ` · ≈${Math.max(1, Math.round(p.lesson.split(/\s+/).length / 150))} мин чтения`)),
+        T.mdEl('div', p.lesson, 'lesson-body'),
+        h('div', { class: 'actions' }, h('span', { class: 'grow' }),
+          h('button', { class: 'btn btn-primary', onclick: e => { e.target.closest('details').open = false; root.querySelector('.modes').scrollIntoView({ behavior: 'smooth' }); } }, 'Прочитано — к заданиям ↓'))) : null,
       p.tasks.length ? modes : h('div', { class: 'card empty muted' }, 'В практике пока нет заданий.'),
       h('div', { class: 'actions wrap' },
         source === 'mine'
@@ -277,8 +282,17 @@
         source === 'mine' ? h('button', { class: 'btn btn-ghost bad', onclick: () => { if (confirm('Удалить практику «' + p.title + '»? Это нельзя отменить.')) { T.deleteMine(p.id); location.hash = '#/'; } } }, 'Удалить') : null),
       p.tasks.length ? h('details', { class: 'card tasks-preview', open: p.tasks.length <= 12 },
         h('summary', null, 'Список заданий (' + p.tasks.length + ')'),
-        h('div', { class: 'trows' }, taskRows)) : null));
+        h('div', { class: 'trows' }, taskRows)) : null,
+      neighbours(p)));
     T.renderMath(root.querySelector('.trows'));
+  }
+  // Предыдущая / следующая практика того же предмета (для курсов из нескольких уроков)
+  function neighbours(p) {
+    const same = T.allPractices().filter(x => x.subject === p.subject);
+    const i = same.findIndex(x => x.id === p.id);
+    if (i < 0 || same.length < 2) return null;
+    const link = (x, label, cls) => x ? h('a', { class: 'card nav-link ' + cls, href: '#/p/' + encodeURIComponent(x.id) }, h('span', { class: 'muted small' }, label), h('b', null, x.title)) : h('span');
+    return h('div', { class: 'neighbours' }, link(same[i - 1], '← Предыдущая', 'prev'), link(same[i + 1], 'Следующая →', 'next'));
   }
   const stat = (v, label, cls) => h('div', { class: 'stat' }, h('div', { class: 'stat-v ' + (cls || '') }, v), h('div', { class: 'stat-l' }, label));
 
@@ -315,6 +329,7 @@
         title: title + (mode === 'exam' ? ' · контрольная' : mode === 'mistakes' ? ' · ошибки' : ''),
         items, backHref, exam: mode === 'exam', timeLimit: +params.time || 0,
         multi: practices.length > 1, again: start,
+        lesson: practices.length === 1 ? practices[0].lesson : null,
       });
     };
     start();

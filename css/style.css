@@ -376,3 +376,45 @@ input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--accent); m
   .task-card-head .btn-icon { padding: 3px 5px; }
   kbd { display: none; }
 }
+
+/* ---------- Теория и разметка ---------- */
+.md h2, .md h3, .md h4, .md h5 { margin: 1.3em 0 .5em; }
+.md h2 { font-size: 1.35rem; } .md h3 { font-size: 1.15rem; } .md h4 { font-size: 1.02rem; } .md h5 { font-size: .95rem; }
+.md > :first-child { margin-top: 0; }
+.md blockquote { margin: .8em 0; padding: 10px 14px; border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 0 10px 10px 0; }
+.md blockquote p { margin: 0; }
+.table-wrap { overflow-x: auto; margin: .6em 0 1em; }
+.md table { border-collapse: collapse; font-size: .92rem; min-width: 60%; }
+.md th, .md td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+.md th { background: var(--surface-2); font-weight: 600; }
+.lesson summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 4px; }
+.lesson summary::-webkit-details-marker { display: none; }
+.lesson summary::before { content: '▸'; color: var(--muted); margin-right: 6px; transition: transform .15s; display: inline-block; }
+.lesson[open] summary::before { transform: rotate(90deg); }
+.lesson-title { font-weight: 700; font-size: 1.1rem; }
+.lesson-body { margin-top: 14px; line-height: 1.65; max-width: 760px; }
+.lesson-body .code-block { font-size: .85rem; }
+.modal .lesson-body { margin-top: 0; }
+.neighbours { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
+.nav-link { display: flex; flex-direction: column; gap: 2px; color: var(--text); margin: 0; }
+.nav-link:hover { border-color: var(--accent); }
+.nav-link.next { text-align: right; }
+
+/* Подсветка кода (highlight.js) — цвета берутся из темы */
+.hljs-keyword, .hljs-meta .hljs-keyword, .hljs-doctag { color: #a626a4; font-weight: 500; }
+.hljs-string, .hljs-regexp { color: #50a14f; }
+.hljs-number, .hljs-literal { color: #b76b01; }
+.hljs-comment, .hljs-quote { color: var(--muted); font-style: italic; }
+.hljs-title, .hljs-title.function_ { color: #4078f2; }
+.hljs-type, .hljs-title.class_, .hljs-built_in { color: #c18401; }
+.hljs-meta { color: #986801; }
+.hljs-params, .hljs-variable { color: inherit; }
+:root[data-theme="dark"] .hljs-keyword { color: #c678dd; } :root[data-theme="dark"] .hljs-string { color: #98c379; }
+:root[data-theme="dark"] .hljs-number, :root[data-theme="dark"] .hljs-literal { color: #d19a66; } :root[data-theme="dark"] .hljs-title { color: #61afef; }
+:root[data-theme="dark"] .hljs-type, :root[data-theme="dark"] .hljs-title.class_, :root[data-theme="dark"] .hljs-built_in { color: #e5c07b; } :root[data-theme="dark"] .hljs-meta { color: #e5c07b; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hljs-keyword { color: #c678dd; } :root:not([data-theme="light"]) .hljs-string { color: #98c379; }
+  :root:not([data-theme="light"]) .hljs-number, :root:not([data-theme="light"]) .hljs-literal { color: #d19a66; } :root:not([data-theme="light"]) .hljs-title { color: #61afef; }
+  :root:not([data-theme="light"]) .hljs-type, :root:not([data-theme="light"]) .hljs-title.class_, :root:not([data-theme="light"]) .hljs-built_in { color: #e5c07b; } :root:not([data-theme="light"]) .hljs-meta { color: #e5c07b; }
+}
+@media (max-width: 640px) { .neighbours { grid-template-columns: 1fr; } }
