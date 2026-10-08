@@ -257,6 +257,15 @@ window.T = window.T || {};
     return s;
   };
 
+  // Совпадает ли ответ ученика с эталоном. Пустой ответ никогда не верен;
+  // если эталон состоит только из знаков препинания (например «;»), они учитываются.
+  T.sameAnswer = function (expected, user, opts = {}) {
+    if (!String(user == null ? '' : user).trim()) return false;
+    const strict = !T.normalize(expected, opts);
+    const o = strict ? { ...opts, keepPunct: true } : opts;
+    return T.normalize(expected, o) === T.normalize(user, o);
+  };
+
   T.levenshtein = function (a, b) {
     if (Math.abs(a.length - b.length) > 3) return 99;
     const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);

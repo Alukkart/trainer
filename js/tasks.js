@@ -147,7 +147,7 @@
           if (!u.trim()) return { invalid: 'Введите ответ' };
           const o = { caseSensitive: task.caseSensitive };
           const nu = T.normalize(u, o);
-          const ok = answers.some(a => T.normalize(a, o) === nu);
+          const ok = answers.some(a => T.sameAnswer(a, u, o));
           const close = !ok && answers.some(a => T.levenshtein(T.normalize(a, o), nu) <= (nu.length > 5 ? 2 : 1));
           inp.disabled = true;
           inp.classList.add(ok ? 'right' : 'wrong');
@@ -311,7 +311,7 @@
           if (gaps.every(g => !g.ctrl.value.trim())) return { invalid: 'Заполните пропуски' };
           let good = 0;
           gaps.forEach(({ p, ctrl }) => {
-            const ok = p.answers.some(a => T.normalize(a, o) === T.normalize(ctrl.value, o));
+            const ok = p.answers.some(a => T.sameAnswer(a, ctrl.value, o));
             if (ok) good++;
             ctrl.classList.add(ok ? 'right' : 'wrong');
             if (!ok) ctrl.after(h('span', { class: 'gap-fix' }, p.answers[0]));
